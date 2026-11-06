@@ -13,14 +13,15 @@ Concept de redesign pentru hotelanaconstanta.ro: site static RO/EN, cu rezervăr
 | **Tehnologie** | Astro static, RO + EN, 1,8 KB JavaScript |
 | **Rezervări** | https://hotel-ana.pynbooking.direct |
 | **Site actual** | https://hotelanaconstanta.ro (WordPress) |
-| **Site live** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-1/ |
+| **Șablon 1** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-1/ |
+| **Șablon 2** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-2/ |
 | **GitHub** | https://github.com/vladimirtudor40-glitch/hotel-ana |
 | **Creat** | 2026-11-06 |
 
 ## Comenzi
 
 ```bash
-cd template-1
+cd template-1   # sau template-2
 npm install
 npm run dev
 npm run build
@@ -61,7 +62,7 @@ Google afișează și piscină. Nicio sursă detaliată nu o confirmă, așa că
 
 Fotografiile sunt ale hotelului, preluate din motorul de rezervări, Travelminit și Litoralul Românesc. `scripts/prepare-photos.mjs` le decupează și le ajustează ușor. Terasa are cea mai slabă imagine (1200 px, decupată strâns): o fotografie nouă, la apus, ar aduce cel mai mare câștig vizual.
 
-## Rezultate măsurate (2026-11-06)
+## Rezultate măsurate, șablon 1 (2026-11-06)
 
 Build local, fără CDN, Lighthouse mobil.
 
@@ -75,4 +76,21 @@ Build local, fără CDN, Lighthouse mobil.
 | CLS | ≤ 0,05 | 0,001 |
 | Greutate pagină | ≤ 250 KB | 236 KB |
 | JavaScript | ≤ 30 KB | 1,8 KB |
+| axe (WCAG 2.2 AA) | 0 probleme | 0, la 320, 390, 820 și 1440 px |
+
+## Șablon 2
+
+Site de noapte, cu carduri în stil bento, Outfit + Work Sans și un calculator de preț live. Direcția a pornit de la skill-ul ui-ux-pro-max. Am păstrat Bento + Dark Mode, fonturile, recenziile înainte de butonul final și rezervarea simplă. Am respins Brutalism, Liquid Glass și Playfair, care nu se potrivesc unui hotel.
+
+Calculatorul adună tarifele publicate pe 2026 pentru fiecare noapte. Pentru sejururile de după 24.12.2026 afișează un mesaj fără preț, până se adaugă tarifele pe 2027 în `template-2/src/i18n/facts.ts`. Afișează tariful de cameră dublă și pentru un singur adult, deși există tarif single.
+
+| Măsură | Țintă | Rezultat |
+|---|---|---|
+| Performanță | ≥ 95 | 100 |
+| Accesibilitate | ≥ 95 | 100 |
+| Best practices | ≥ 95 | 100 |
+| LCP | ≤ 1,2 s | 1,8 s, peste țintă |
+| CLS | ≤ 0,05 | 0,01 |
+| Greutate pagină | ≤ 250 KB | 194 KB |
+| JavaScript | ≤ 30 KB | 1.8 KB gzip (4.2 KB) |
 | axe (WCAG 2.2 AA) | 0 probleme | 0, la 320, 390, 820 și 1440 px |

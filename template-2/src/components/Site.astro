@@ -1,0 +1,551 @@
+---
+import { Picture } from 'astro:assets';
+import '../styles/fonts.css';
+import '../styles/global.css';
+import Icon from './Icon.astro';
+import { content } from '../i18n/content';
+import { hotel, rates, fromPrice, type Lang } from '../i18n/facts';
+
+import hero from '../assets/photos/hero.jpg';
+import doubleA from '../assets/photos/double-a.jpg';
+import doubleB from '../assets/photos/double-b.jpg';
+import twinA from '../assets/photos/twin-a.jpg';
+import twinB from '../assets/photos/twin-b.jpg';
+import tripleA from '../assets/photos/triple-a.jpg';
+import tripleB from '../assets/photos/triple-b.jpg';
+import apartmentA from '../assets/photos/apartment-a.jpg';
+import apartmentB from '../assets/photos/apartment-b.jpg';
+import terrace from '../assets/photos/terrace.jpg';
+import salon from '../assets/photos/salon.jpg';
+import mosaic from '../assets/photos/mosaic.jpg';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = content[lang];
+const base = import.meta.env.BASE_URL;
+const site = Astro.site!.origin;
+const pageUrl = `${site}${base}${lang === 'en' ? 'en/' : ''}`;
+const bookingUrl = `${hotel.booking}/${lang}`;
+const formats = ['avif', 'webp'] as const;
+const roomPhotos = {
+  double: [doubleA, doubleB],
+  twin: [twinA, twinB],
+  triple: [tripleA, tripleB],
+  apartment: [apartmentA, apartmentB],
+};
+
+// Distance bars use a log scale so 50 m and 22 km can share one axis.
+const scale = (metres: number) =>
+  Math.round(8 + (Math.log(metres / 50) / Math.log(22000 / 50)) * 92);
+
+const liveData = JSON.stringify({
+  rates,
+  strings: { ro: content.ro.live, en: content.en.live },
+}).replace(/</g, '\\u003c');
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Hotel',
+  name: hotel.name,
+  description: t.description,
+  url: pageUrl,
+  image: `${site}${base}og.jpg`,
+  telephone: hotel.phoneDesk,
+  email: hotel.email,
+  priceRange: `${fromPrice.single}-480 RON`,
+  starRating: { '@type': 'Rating', ratingValue: 3 },
+  checkinTime: '15:00',
+  checkoutTime: '11:30',
+  petsAllowed: false,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: hotel.street,
+    postalCode: hotel.postal,
+    addressLocality: hotel.city,
+    addressCountry: 'RO',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: hotel.lat, longitude: hotel.lng },
+  sameAs: [hotel.facebook, hotel.instagram],
+};
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.title}</title>
+    <meta name="description" content={t.description} />
+    <!-- Concept build: remove this line when the hotel approves the launch. -->
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="alternate" hreflang="ro" href={`${site}${base}`} />
+    <link rel="alternate" hreflang="en" href={`${site}${base}en/`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}${base}`} />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <meta name="theme-color" content="#0e1622" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.title} />
+    <meta property="og:description" content={t.description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={`${site}${base}og.jpg`} />
+    <meta property="og:locale" content={t.locale} />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+
+    <header class="top" data-top>
+      <a class="brand" href={base} aria-label={hotel.name}>
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span class="brand-name">Hotel Ana</span>
+      </a>
+      <nav class="nav" aria-label={t.menu}>
+        {t.nav.map(([href, label]) => <a href={href}>{label}</a>)}
+      </nav>
+      <div class="top-actions">
+        <div class="lang" role="group" aria-label={t.langLabel} data-lang-switch>
+          <a href={base} hreflang="ro" lang="ro" data-lang="ro" aria-current={lang === 'ro' ? 'true' : undefined}>RO</a>
+          <a href={`${base}en/`} hreflang="en" lang="en" data-lang="en" aria-current={lang === 'en' ? 'true' : undefined}>EN</a>
+        </div>
+        <a class="btn btn-small top-book" href={bookingUrl}>{t.book}</a>
+        <details class="menu">
+          <summary>{t.menu}</summary>
+          <nav aria-label={t.menu}>
+            {t.nav.map(([href, label]) => <a href={href}>{label}</a>)}
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="hero-photo">
+          <Picture
+            src={hero}
+            alt={t.hero.alt}
+            formats={formats}
+            widths={[640, 960, 1536]}
+            sizes="(min-width: 1000px) 62vw, 100vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <div class="hero-inner">
+          <p class="eyebrow">{t.hero.eyebrow}</p>
+          <h1>{t.hero.title}</h1>
+          <p class="lede">{t.hero.lede}</p>
+          <form class="book" action={bookingUrl} method="get" id="rezerva" aria-label={t.form.label} data-book>
+            <input type="hidden" name="currency" value="RON" />
+            <label>
+              <span>{t.form.checkin}</span>
+              <input type="date" name="checkin" required />
+            </label>
+            <label>
+              <span>{t.form.checkout}</span>
+              <input type="date" name="checkout" required />
+            </label>
+            <label>
+              <span>{t.form.adults}</span>
+              <select name="adults">
+                <option>1</option>
+                <option selected>2</option>
+                <option>3</option>
+                <option>4</option>
+              </select>
+            </label>
+            <button class="btn" type="submit">{t.form.submit}</button>
+            <p class="book-live" data-live="summary" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="rooms wrap" id="camere">
+        <header class="head" data-reveal>
+          <p class="eyebrow">{t.rooms.eyebrow}</p>
+          <h2>{t.rooms.title}</h2>
+          <p>{t.rooms.intro}</p>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label={t.rooms.tabsLabel} data-tabs>
+          {t.rooms.list.map((room, index) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${room.id}`}
+              aria-controls={`panel-${room.id}`}
+              aria-selected={index === 0 ? 'true' : 'false'}
+              tabindex={index === 0 ? 0 : -1}
+            >
+              {room.tab}
+            </button>
+          ))}
+        </div>
+
+        {t.rooms.list.map((room) => (
+          <div class="room" id={`panel-${room.id}`} role="tabpanel" aria-labelledby={`tab-${room.id}`} data-panel>
+            <div class="room-main">
+              <Picture src={roomPhotos[room.id][0]} alt={room.altA} formats={formats} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 56vw, 100vw" />
+            </div>
+            <div class="room-side">
+              <Picture src={roomPhotos[room.id][1]} alt={room.altB} formats={formats} widths={[400, 700]} sizes="(min-width: 1000px) 18vw, 100vw" />
+            </div>
+            <div class="room-card">
+              <h3>{room.name}</h3>
+              <p>{room.text}</p>
+              <ul class="specs">
+                {room.specs.map((spec) => <li>{spec}</li>)}
+              </ul>
+              <p class="price">
+                <span>{t.rooms.from}</span> <b>{fromPrice[room.price]}</b> <span>{t.rooms.perNight}</span>
+              </p>
+              <p class="estimate" data-live="room" data-price={room.price}></p>
+              <a class="btn" href={bookingUrl} data-room-link>{t.rooms.bookRoom}<Icon name="arrow" /></a>
+            </div>
+          </div>
+        ))}
+
+        <p class="all-rooms">{t.rooms.allRooms}</p>
+      </section>
+
+      <section class="bento-section wrap" id="hotel">
+        <header class="head" data-reveal>
+          <p class="eyebrow">{t.bento.eyebrow}</p>
+          <h2>{t.bento.title}</h2>
+        </header>
+        <div class="bento">
+          <figure class="tile tile-salon" data-reveal>
+            <Picture src={salon} alt={t.bento.salonAlt} formats={formats} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 48vw, 100vw" />
+            <figcaption><b>{t.bento.salon[0]}</b><span>{t.bento.salon[1]}</span></figcaption>
+          </figure>
+          <figure class="tile tile-terrace" data-reveal>
+            <Picture src={terrace} alt={t.bento.terraceAlt} formats={formats} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 48vw, 100vw" />
+            <figcaption><b>{t.bento.terrace[0]}</b><span>{t.bento.terrace[1]}</span></figcaption>
+          </figure>
+          <div class="tile tile-plain" data-reveal><Icon name="parking" /><b>{t.bento.parking[0]}</b><span>{t.bento.parking[1]}</span></div>
+          <div class="tile tile-plain" data-reveal><Icon name="wifi" /><b>{t.bento.wifi[0]}</b><span>{t.bento.wifi[1]}</span></div>
+          <div class="tile tile-plain" data-reveal><Icon name="lift" /><b>{t.bento.lift[0]}</b><span>{t.bento.lift[1]}</span></div>
+          <div class="tile tile-plain" data-reveal><Icon name="bell" /><b>{t.bento.service[0]}</b><span>{t.bento.service[1]}</span></div>
+          <figure class="tile tile-mosaic" data-reveal>
+            <Picture src={mosaic} alt={t.bento.mosaicAlt} formats={formats} widths={[480, 800, 1200]} sizes="(min-width: 1000px) 48vw, 100vw" />
+            <figcaption><b>{t.bento.mosaic[0]}</b><span>{t.bento.mosaic[1]}</span></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="area wrap" id="zona">
+        <header class="head" data-reveal>
+          <p class="eyebrow">{t.area.eyebrow}</p>
+          <h2>{t.area.title}</h2>
+          <p>{t.area.intro}</p>
+        </header>
+        <ul class="bars" data-reveal>
+          {t.area.items.map(([place, label, metres]) => (
+            <li>
+              <span class="bar-place">{place}</span>
+              <span class="bar-track" aria-hidden="true"><i style={`width:${scale(metres as number)}%`}></i></span>
+              <b>{label}</b>
+            </li>
+          ))}
+        </ul>
+        <a class="link" href={hotel.directions} rel="noopener">{t.area.directions}<Icon name="arrow" /></a>
+      </section>
+
+      <section class="info wrap" id="info">
+        <header class="head" data-reveal>
+          <p class="eyebrow">{t.info.eyebrow}</p>
+          <h2>{t.info.title}</h2>
+        </header>
+        <dl class="info-grid" data-reveal>
+          {t.info.items.map(([term, text]) => (
+            <div><dt>{term}</dt><dd>{text}</dd></div>
+          ))}
+        </dl>
+      </section>
+
+      <section class="proof wrap">
+        <div class="proof-card" data-reveal>
+          <figure>
+            <p class="eyebrow">{t.proof.eyebrow}</p>
+            <blockquote>{t.proof.quote}</blockquote>
+            <figcaption>{t.proof.by}</figcaption>
+          </figure>
+          <ul class="scores">
+            {t.proof.scores.map(([value, outOf, source, count]) => (
+              <li>
+                <span class="score"><b>{value}</b><small>{outOf}</small></span>
+                <span>{source}<br />{count}</span>
+              </li>
+            ))}
+          </ul>
+          <div class="proof-cta">
+            <h2>{t.proof.ctaTitle}</h2>
+            <a class="btn" href={bookingUrl}>{t.proof.ctaButton}<Icon name="arrow" /></a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="contact wrap" id="contact">
+      <div class="contact-grid">
+        <div>
+          <p class="eyebrow">{t.contact.eyebrow}</p>
+          <h2>{t.contact.title}</h2>
+          <a class="btn btn-ghost" href={hotel.whatsapp} rel="noopener">{t.contact.whatsapp}</a>
+        </div>
+        <dl>
+          <div><dt>{t.contact.mobile}</dt><dd><a href={`tel:${hotel.phoneMobile}`}>{hotel.phoneMobileLabel}</a></dd></div>
+          <div><dt>{t.contact.desk}</dt><dd><a href={`tel:${hotel.phoneDesk}`}>{hotel.phoneDeskLabel}</a></dd></div>
+          <div><dt>{t.contact.email}</dt><dd><a href={`mailto:${hotel.email}`}>{hotel.email}</a></dd></div>
+          <div><dt>{t.contact.address}</dt><dd><a href={hotel.directions} rel="noopener">{hotel.street}, {hotel.city}</a></dd></div>
+        </dl>
+      </div>
+      <div class="legal">
+        <p>{t.contact.languages}</p>
+        <ul>
+          <li><a href={hotel.facebook} rel="noopener">Facebook</a></li>
+          <li><a href={hotel.instagram} rel="noopener">Instagram</a></li>
+          {t.footer.policies.map(([label, href]) => <li><a href={href} rel="noopener">{label}</a></li>)}
+        </ul>
+        <p>© {new Date().getFullYear()} {hotel.company}, CUI {hotel.cui}. {t.footer.rights} {t.footer.concept}</p>
+      </div>
+    </footer>
+
+    <nav class="dock" aria-label={t.book}>
+      <a class="btn btn-ghost" href={`tel:${hotel.phoneMobile}`}>{t.call}</a>
+      <a class="btn" href="#rezerva">{t.book}</a>
+    </nav>
+
+    <script type="application/json" id="live-data" set:html={liveData} />
+
+    <script>
+      type Rate = { from: string; to: string; [room: string]: string | number };
+      const data = JSON.parse(document.getElementById('live-data')!.textContent!) as {
+        rates: Rate[];
+        strings: Record<string, Record<string, string>>;
+      };
+
+      const iso = (date: Date) => {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+      };
+      const addDays = (date: Date, days: number) => {
+        const next = new Date(date);
+        next.setDate(next.getDate() + days);
+        return next;
+      };
+      const atNoon = (value: string) => new Date(`${value}T12:00:00`);
+      const today = new Date();
+
+      const form = document.querySelector<HTMLFormElement>('[data-book]')!;
+      const checkin = form.elements.namedItem('checkin') as HTMLInputElement;
+      const checkout = form.elements.namedItem('checkout') as HTMLInputElement;
+
+      const nightsBetween = () => {
+        if (!checkin.value || !checkout.value) return [];
+        const nights: string[] = [];
+        for (let day = atNoon(checkin.value); iso(day) < checkout.value; day = addDays(day, 1)) {
+          nights.push(iso(day));
+        }
+        return nights;
+      };
+
+      // Sum of the published nightly rates, or null when a night is outside the rate list.
+      const totalFor = (room: string, nights: string[]) => {
+        let total = 0;
+        for (const night of nights) {
+          const rate = data.rates.find((period) => night >= period.from && night <= period.to);
+          if (!rate) return null;
+          total += Number(rate[room]);
+        }
+        return total;
+      };
+
+      const nightLabel = (count: number, text: Record<string, string>) => {
+        if (count === 1) return `1 ${text.night}`;
+        return `${count} ${count >= 20 ? text.manyNights : text.nights}`;
+      };
+
+      const renderLive = () => {
+        const text = data.strings[document.documentElement.lang] ?? data.strings.ro;
+        const nights = nightsBetween();
+        const lowest = nights.length ? totalFor('double', nights) : null;
+        const summary = document.querySelector<HTMLElement>('[data-live="summary"]')!;
+        if (!nights.length) summary.textContent = text.pick;
+        else if (lowest === null) summary.textContent = text.unknown;
+        else summary.textContent = `${nightLabel(nights.length, text)} · ${text.fromTotal} ${lowest} ${text.total}`;
+
+        document.querySelectorAll<HTMLElement>('[data-live="room"]').forEach((element) => {
+          const total = nights.length ? totalFor(element.dataset.price!, nights) : null;
+          if (!nights.length) element.textContent = text.pick;
+          else if (total === null) element.textContent = text.unknown;
+          else element.textContent = `${text.estimate}: ${total} ${text.total}, ${nightLabel(nights.length, text)}`;
+        });
+      };
+
+      // Dates: sensible defaults, departure always after arrival.
+      checkin.min = iso(today);
+      checkin.value = iso(addDays(today, 1));
+      checkout.min = iso(addDays(today, 2));
+      checkout.value = iso(addDays(today, 2));
+      checkin.addEventListener('change', () => {
+        if (checkin.value) {
+          const earliest = iso(addDays(atNoon(checkin.value), 1));
+          checkout.min = earliest;
+          if (!checkout.value || checkout.value <= checkin.value) checkout.value = earliest;
+        }
+        renderLive();
+      });
+      checkout.addEventListener('change', renderLive);
+      renderLive();
+
+      // Room tabs. Without JS all rooms simply stay listed one after another.
+      const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...document.querySelectorAll<HTMLElement>('[data-panel]')];
+      const select = (index: number, focus = false) => {
+        tabs.forEach((tab, position) => {
+          const active = position === index;
+          tab.setAttribute('aria-selected', String(active));
+          tab.tabIndex = active ? 0 : -1;
+          panels[position].hidden = !active;
+        });
+        if (focus) tabs[index].focus();
+      };
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => select(index));
+        tab.addEventListener('keydown', (event) => {
+          const last = tabs.length - 1;
+          const targets: Record<string, number> = {
+            ArrowRight: index === last ? 0 : index + 1,
+            ArrowLeft: index === 0 ? last : index - 1,
+            Home: 0,
+            End: last,
+          };
+          if (event.key in targets) {
+            event.preventDefault();
+            select(targets[event.key], true);
+          }
+        });
+      });
+      select(0);
+
+      // Keep the guest's dates when they continue to the booking engine from a room.
+      document.querySelectorAll<HTMLAnchorElement>('[data-room-link]').forEach((link) => {
+        link.addEventListener('click', () => {
+          if (!checkin.value || !checkout.value) return;
+          const url = new URL(link.href);
+          url.search = new URLSearchParams({
+            checkin: checkin.value,
+            checkout: checkout.value,
+            adults: (form.elements.namedItem('adults') as HTMLSelectElement).value,
+            currency: 'RON',
+          }).toString();
+          link.href = url.toString();
+        });
+      });
+
+      // Language switch: both builds share one DOM shape, so the page swaps text and
+      // attributes in place. Live estimates are skipped and re-rendered afterwards.
+      const langSwitch = document.querySelector<HTMLElement>('[data-lang-switch]')!;
+      const options = [...langSwitch.querySelectorAll<HTMLAnchorElement>('a')];
+      const pages = new Map<string, Promise<Document>>();
+      const load = (link: HTMLAnchorElement) => {
+        if (!pages.has(link.href)) {
+          const page = fetch(link.href)
+            .then((response) => {
+              if (!response.ok) throw new Error(String(response.status));
+              return response.text();
+            })
+            .then((html) => new DOMParser().parseFromString(html, 'text/html'));
+          page.catch(() => pages.delete(link.href));
+          pages.set(link.href, page);
+        }
+        return pages.get(link.href)!;
+      };
+      const textNodes = (root: HTMLElement) => {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode: (node) =>
+            node.parentElement?.closest('script, style, [data-live]')
+              ? NodeFilter.FILTER_REJECT
+              : NodeFilter.FILTER_ACCEPT,
+        });
+        const nodes: Node[] = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        return nodes;
+      };
+      const swap = (next: Document) => {
+        const currentText = textNodes(document.body);
+        const nextText = textNodes(next.body);
+        const current = [...document.body.querySelectorAll('*')];
+        const incoming = [...next.body.querySelectorAll('*')];
+        if (currentText.length !== nextText.length || current.length !== incoming.length) return false;
+        currentText.forEach((node, index) => {
+          node.nodeValue = nextText[index].nodeValue;
+        });
+        current.forEach((element, index) => {
+          if (element.closest('[data-lang]')) return;
+          for (const name of ['alt', 'aria-label', 'href', 'action']) {
+            const value = incoming[index].getAttribute(name);
+            if (value !== null) element.setAttribute(name, value);
+          }
+        });
+        document.documentElement.lang = next.documentElement.lang;
+        document.title = next.title;
+        const description = next.querySelector('meta[name="description"]')?.getAttribute('content');
+        if (description) document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+        renderLive();
+        return true;
+      };
+      options.forEach((link) => {
+        link.addEventListener('pointerenter', () => load(link).catch(() => {}));
+        link.addEventListener('focus', () => load(link).catch(() => {}));
+        link.addEventListener('click', async (event) => {
+          event.preventDefault();
+          if (link.hasAttribute('aria-current')) return;
+          try {
+            if (!swap(await load(link))) throw new Error('layout mismatch');
+            options.forEach((option) => option.removeAttribute('aria-current'));
+            link.setAttribute('aria-current', 'true');
+          } catch {
+            location.href = link.href;
+          }
+        });
+      });
+
+      // Header gains a solid background once the page moves.
+      const top = document.querySelector<HTMLElement>('[data-top]')!;
+      const onScroll = () => top.classList.toggle('is-solid', scrollY > 24);
+      addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      const menu = document.querySelector<HTMLDetailsElement>('.menu');
+      menu?.querySelectorAll('a').forEach((link) =>
+        link.addEventListener('click', () => menu.removeAttribute('open')),
+      );
+
+      // Short staggered reveal; all content stays visible without JS or with reduced motion.
+      if (matchMedia('(prefers-reduced-motion: no-preference)').matches && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -6% 0px' },
+        );
+        document.querySelectorAll('[data-reveal]').forEach((element) => {
+          element.classList.add('pre');
+          observer.observe(element);
+        });
+      }
+    </script>
+  </body>
+</html>
