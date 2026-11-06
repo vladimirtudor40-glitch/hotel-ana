@@ -94,9 +94,10 @@ const schema = {
         {t.nav.map(([href, label]) => <a href={href}>{label}</a>)}
       </nav>
       <div class="top-actions">
-        <a class="lang" href={`${base}${t.otherLang.path}`} hreflang={lang === 'ro' ? 'en' : 'ro'} aria-label={t.otherLang.name}>
-          {t.otherLang.label}
-        </a>
+        <div class="lang" role="group" aria-label={t.langLabel} data-lang-switch>
+          <a href={base} hreflang="ro" lang="ro" data-lang="ro" aria-current={lang === 'ro' ? 'true' : undefined}>RO</a>
+          <a href={`${base}en/`} hreflang="en" lang="en" data-lang="en" aria-current={lang === 'en' ? 'true' : undefined}>EN</a>
+        </div>
         <a class="btn btn-small top-book" href={bookingUrl}>{t.book}</a>
         <details class="menu">
           <summary>{t.menu}</summary>
@@ -401,6 +402,73 @@ const schema = {
         return next;
       };
       const today = new Date();
+
+      // Language switch: both language builds share one DOM shape, so the page swaps
+      // text and attributes in place. The address and scroll position stay the same.
+      const langSwitch = document.querySelector<HTMLElement>('[data-lang-switch]');
+      if (langSwitch) {
+        const options = [...langSwitch.querySelectorAll<HTMLAnchorElement>('a')];
+        const pages = new Map<string, Promise<Document>>();
+        const load = (link: HTMLAnchorElement) => {
+          if (!pages.has(link.href)) {
+            const page = fetch(link.href)
+              .then((response) => {
+                if (!response.ok) throw new Error(String(response.status));
+                return response.text();
+              })
+              .then((html) => new DOMParser().parseFromString(html, 'text/html'));
+            page.catch(() => pages.delete(link.href));
+            pages.set(link.href, page);
+          }
+          return pages.get(link.href)!;
+        };
+        const textNodes = (root: HTMLElement) => {
+          const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) =>
+              node.parentElement?.closest('script, style') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+          });
+          const nodes: Node[] = [];
+          while (walker.nextNode()) nodes.push(walker.currentNode);
+          return nodes;
+        };
+        const swap = (next: Document) => {
+          const currentText = textNodes(document.body);
+          const nextText = textNodes(next.body);
+          const current = [...document.body.querySelectorAll('*')];
+          const incoming = [...next.body.querySelectorAll('*')];
+          if (currentText.length !== nextText.length || current.length !== incoming.length) return false;
+          currentText.forEach((node, index) => {
+            node.nodeValue = nextText[index].nodeValue;
+          });
+          current.forEach((element, index) => {
+            if (element.closest('[data-lang]')) return;
+            for (const name of ['alt', 'aria-label', 'href', 'action']) {
+              const value = incoming[index].getAttribute(name);
+              if (value !== null) element.setAttribute(name, value);
+            }
+          });
+          document.documentElement.lang = next.documentElement.lang;
+          document.title = next.title;
+          const description = next.querySelector('meta[name="description"]')?.getAttribute('content');
+          if (description) document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+          return true;
+        };
+        options.forEach((link) => {
+          link.addEventListener('pointerenter', () => load(link).catch(() => {}));
+          link.addEventListener('focus', () => load(link).catch(() => {}));
+          link.addEventListener('click', async (event) => {
+            event.preventDefault();
+            if (link.hasAttribute('aria-current')) return;
+            try {
+              if (!swap(await load(link))) throw new Error('layout mismatch');
+              options.forEach((option) => option.removeAttribute('aria-current'));
+              link.setAttribute('aria-current', 'true');
+            } catch {
+              location.href = link.href;
+            }
+          });
+        });
+      }
 
       // Booking form: sensible defaults, departure always after arrival.
       const form = document.querySelector<HTMLFormElement>('[data-book]');

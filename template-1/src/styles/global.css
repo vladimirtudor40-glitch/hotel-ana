@@ -287,17 +287,32 @@ h3 {
 
 .lang {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
 }
 
-.lang:hover {
-  color: var(--clay);
+.lang a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 38px;
+  border-radius: 1px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.lang a:hover {
+  color: var(--ink);
+}
+
+.lang a[aria-current] {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .top-book {

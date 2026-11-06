@@ -66,7 +66,7 @@ export const content = {
       ['#zona', 'Zona'],
       ['#contact', 'Contact'],
     ],
-    otherLang: { label: 'EN', name: 'English', path: 'en/' },
+    langLabel: 'Limba site-ului',
     book: 'Rezervă',
     call: 'Sună',
     lift: {
@@ -283,7 +283,7 @@ export const content = {
       ['#zona', 'The area'],
       ['#contact', 'Contact'],
     ],
-    otherLang: { label: 'RO', name: 'Română', path: '' },
+    langLabel: 'Site language',
     book: 'Book',
     call: 'Call',
     lift: {
