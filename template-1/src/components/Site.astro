@@ -1,0 +1,491 @@
+---
+import { Picture } from 'astro:assets';
+import '../styles/fonts.css';
+import '../styles/global.css';
+import { content, hotel, rates, fromPrice, type Lang } from '../i18n/content';
+
+import facade from '../assets/photos/facade.jpg';
+import lobby from '../assets/photos/lobby.jpg';
+import reception from '../assets/photos/reception.jpg';
+import salon from '../assets/photos/salon.jpg';
+import coffee from '../assets/photos/coffee.jpg';
+import bath from '../assets/photos/bath.jpg';
+import roomDouble from '../assets/photos/room-double.jpg';
+import roomTwin from '../assets/photos/room-twin.jpg';
+import roomTriple from '../assets/photos/room-triple.jpg';
+import apartmentBed from '../assets/photos/apartment-bed.jpg';
+import apartmentLiving from '../assets/photos/apartment-living.jpg';
+import terrace from '../assets/photos/terrace.jpg';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = content[lang];
+const base = import.meta.env.BASE_URL;
+const site = Astro.site!.origin;
+const pageUrl = `${site}${base}${lang === 'en' ? 'en/' : ''}`;
+const bookingUrl = `${hotel.booking}/${lang}`;
+const formats = ['avif', 'webp'] as const;
+const roomImages = { double: roomDouble, twin: roomTwin, triple: roomTriple };
+const shortDate = (iso: string) => iso.slice(8, 10) + '.' + iso.slice(5, 7);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Hotel',
+  name: hotel.name,
+  description: t.description,
+  url: pageUrl,
+  image: `${site}${base}og.jpg`,
+  telephone: hotel.phoneDesk,
+  email: hotel.email,
+  priceRange: `${fromPrice.single}-480 RON`,
+  starRating: { '@type': 'Rating', ratingValue: 3 },
+  checkinTime: '15:00',
+  checkoutTime: '11:30',
+  petsAllowed: false,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: hotel.street,
+    postalCode: hotel.postal,
+    addressLocality: hotel.city,
+    addressCountry: 'RO',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: hotel.lat, longitude: hotel.lng },
+  sameAs: [hotel.facebook, hotel.instagram],
+};
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{t.title}</title>
+    <meta name="description" content={t.description} />
+    <!-- Concept build: remove this line when the hotel approves the launch. -->
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={pageUrl} />
+    <link rel="alternate" hreflang="ro" href={`${site}${base}`} />
+    <link rel="alternate" hreflang="en" href={`${site}${base}en/`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}${base}`} />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <meta name="theme-color" content="#f5f0e8" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={t.title} />
+    <meta property="og:description" content={t.description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={`${site}${base}og.jpg`} />
+    <meta property="og:locale" content={t.locale} />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+
+    <header class="top">
+      <a class="brand" href={`${base}${lang === 'en' ? 'en/' : ''}`} aria-label={hotel.name}>
+        <span class="brand-small">Hotel</span>
+        <span class="brand-name">Ana</span>
+        <span class="brand-stars" aria-hidden="true">★★★</span>
+      </a>
+      <nav class="nav" aria-label={t.menu}>
+        {t.nav.map(([href, label]) => <a href={href}>{label}</a>)}
+      </nav>
+      <div class="top-actions">
+        <a class="lang" href={`${base}${t.otherLang.path}`} hreflang={lang === 'ro' ? 'en' : 'ro'} aria-label={t.otherLang.name}>
+          {t.otherLang.label}
+        </a>
+        <a class="btn btn-small top-book" href={bookingUrl}>{t.book}</a>
+        <details class="menu">
+          <summary>{t.menu}</summary>
+          <nav aria-label={t.menu}>
+            {t.nav.map(([href, label]) => <a href={href}>{label}</a>)}
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <nav class="lift" aria-label={t.lift.label} data-lift>
+      <ol>
+        {t.lift.levels.map(([id, label]) => (
+          <li>
+            <a href={`#${id}`} data-level={id}>
+              <span class="lift-dot" aria-hidden="true"></span>
+              <span class="lift-label">{label}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <main id="main">
+      <section class="hero" id="strada" data-section="strada">
+        <div class="hero-copy">
+          <p class="eyebrow">{t.hero.eyebrow}</p>
+          <h1><span>{t.hero.titleA}</span> <em>{t.hero.titleB}</em></h1>
+          <p class="lede">{t.hero.lede}</p>
+        </div>
+        <div class="hero-photo">
+          <Picture
+            src={facade}
+            alt={t.hero.alt}
+            formats={formats}
+            widths={[480, 768, 1100, 1536]}
+            sizes="(min-width: 960px) 50vw, 100vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <form class="book" action={bookingUrl} method="get" id="rezerva" data-book>
+          <h2 class="book-title">{t.form.title}</h2>
+          <input type="hidden" name="currency" value="RON" />
+          <label>
+            <span>{t.form.checkin}</span>
+            <input type="date" name="checkin" required />
+          </label>
+          <label>
+            <span>{t.form.checkout}</span>
+            <input type="date" name="checkout" required />
+          </label>
+          <label>
+            <span>{t.form.adults}</span>
+            <select name="adults">
+              <option>1</option>
+              <option selected>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select>
+          </label>
+          <button class="btn" type="submit">{t.form.submit}</button>
+          <p class="book-note">{t.form.note}</p>
+        </form>
+      </section>
+
+      <section class="scores" aria-label={t.scoresLabel}>
+        <div class="meander" aria-hidden="true"></div>
+        <ul>
+          {t.scores.map(([value, scale, source]) => (
+            <li>
+              <span class="score"><b>{value}</b><small>{scale}</small></span>
+              <span class="score-source">{source}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="reception wrap" id="receptie" data-section="receptie">
+        <div class="reception-lobby" data-reveal>
+          <Picture src={lobby} alt={t.reception.lobbyAlt} formats={formats} widths={[480, 800, 1200]} sizes="(min-width: 960px) 55vw, 100vw" />
+        </div>
+        <div class="reception-copy" data-reveal>
+          <p class="eyebrow">{t.reception.level}</p>
+          <h2>{t.reception.title}</h2>
+          <p>{t.reception.body}</p>
+        </div>
+        <div class="reception-desk" data-reveal>
+          <Picture src={reception} alt={t.reception.receptionAlt} formats={formats} widths={[400, 700]} sizes="(min-width: 960px) 30vw, 100vw" />
+        </div>
+      </section>
+
+      <section class="salon wrap">
+        <div class="salon-photo" data-reveal>
+          <Picture src={salon} alt={t.reception.salonAlt} formats={formats} widths={[600, 1000, 1600]} sizes="(min-width: 1240px) 1040px, 100vw" />
+        </div>
+        <div class="salon-copy" data-reveal>
+          <h3>{t.reception.salonTitle}</h3>
+          <p>{t.reception.salonBody}</p>
+        </div>
+        <figure class="salon-quote" data-reveal>
+          <blockquote>{t.reception.quote}</blockquote>
+          <figcaption>{t.reception.quoteBy}</figcaption>
+        </figure>
+        <div class="salon-coffee" data-reveal>
+          <Picture src={coffee} alt={t.reception.coffeeAlt} formats={formats} widths={[400, 700]} sizes="(min-width: 960px) 26vw, 100vw" />
+        </div>
+      </section>
+
+      <section class="rooms" id="camere" data-section="camere">
+        <div class="wrap">
+          <header class="section-head" data-reveal>
+            <p class="eyebrow">{t.rooms.level}</p>
+            <h2>{t.rooms.title}</h2>
+            <p>{t.rooms.intro}</p>
+          </header>
+
+          {t.rooms.list.map((room) => (
+            <article class="room" id={room.id} data-reveal>
+              <div class="room-photo">
+                <Picture src={roomImages[room.image]} alt={room.alt} formats={formats} widths={[480, 800, 1300]} sizes="(min-width: 960px) 58vw, 100vw" />
+              </div>
+              <div class="room-copy">
+                <h3>{room.name}</h3>
+                <ul class="room-specs">
+                  <li>{room.size}</li>
+                  <li>{room.guests}</li>
+                  <li>{room.bed}</li>
+                </ul>
+                <p>{room.text}</p>
+                <p class="price">
+                  <span>{t.rooms.from}</span> <b>{fromPrice[room.price]}</b> <span>{t.rooms.perNight}</span>
+                </p>
+                <a class="link" href={bookingUrl}>{t.rooms.bookRoom}</a>
+              </div>
+            </article>
+          ))}
+
+          <div class="inroom" data-reveal>
+            <div>
+              <h3>{t.rooms.inRoomTitle}</h3>
+              <ul>
+                {t.rooms.inRoom.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+            <div class="inroom-photo">
+              <Picture src={bath} alt={t.rooms.bathAlt} formats={formats} widths={[400, 800]} sizes="(min-width: 960px) 34vw, 100vw" />
+            </div>
+          </div>
+
+          <details class="rates">
+            <summary>{t.rooms.ratesSummary}</summary>
+            <div class="rates-scroll" role="region" aria-label={t.rooms.ratesSummary} tabindex="0">
+              <table>
+                <caption>{t.rooms.ratesCaption}</caption>
+                <thead>
+                  <tr>{t.rooms.ratesHead.map((head) => <th scope="col">{head}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {rates.map((rate) => (
+                    <tr data-from={rate.from} data-to={rate.to}>
+                      <th scope="row">
+                        {shortDate(rate.from)} – {shortDate(rate.to)}
+                        <span class="now" hidden>{t.rooms.ratesNow}</span>
+                      </th>
+                      <td>{rate.single}</td>
+                      <td>{rate.double}</td>
+                      <td>{rate.triple}</td>
+                      <td>{rate.apartment}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="rates-note">{t.rooms.ratesNote}</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="apartment" id="apartament" data-section="apartament">
+        <div class="wrap apartment-grid">
+          <div class="apartment-copy" data-reveal>
+            <p class="eyebrow">{t.apartment.level} · {t.apartment.name}</p>
+            <h2>{t.apartment.title}</h2>
+            <p>{t.apartment.body}</p>
+            <dl>
+              {t.apartment.facts.map(([term, value]) => (
+                <div><dt>{term}</dt><dd>{value}</dd></div>
+              ))}
+            </dl>
+            <p class="small">{t.apartment.note}</p>
+            <p class="price">
+              <span>{t.rooms.from}</span> <b>{fromPrice.apartment}</b> <span>{t.rooms.perNight}</span>
+            </p>
+            <a class="btn btn-light" href={bookingUrl}>{t.book}</a>
+          </div>
+          <div class="apartment-living" data-reveal>
+            <Picture src={apartmentLiving} alt={t.apartment.livingAlt} formats={formats} widths={[450, 900]} sizes="(min-width: 960px) 38vw, 100vw" />
+          </div>
+          <div class="apartment-bed" data-reveal>
+            <Picture src={apartmentBed} alt={t.apartment.bedAlt} formats={formats} widths={[450, 900]} sizes="(min-width: 960px) 30vw, 100vw" />
+          </div>
+        </div>
+      </section>
+
+      <section class="terrace" id="terasa" data-section="terasa">
+        <div class="wrap">
+          <div class="terrace-photo" data-reveal>
+            <Picture src={terrace} alt={t.terrace.alt} formats={formats} widths={[600, 900, 1200]} sizes="(min-width: 1240px) 1100px, 100vw" />
+          </div>
+          <div class="terrace-copy" data-reveal>
+            <p class="eyebrow">{t.terrace.level}</p>
+            <h2>{t.terrace.title}</h2>
+            <div>
+              <p>{t.terrace.body}</p>
+              <p class="small">{t.terrace.note}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="area wrap" id="zona">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow">{t.area.eyebrow}</p>
+          <h2>{t.area.title}</h2>
+          <p>{t.area.intro}</p>
+        </header>
+        <div class="area-grid" data-reveal>
+          {t.area.groups.map((group) => (
+            <div>
+              <h3>{group.title}</h3>
+              <dl>
+                {group.items.map(([place, distance]) => (
+                  <div><dt>{place}</dt><dd>{distance}</dd></div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+        <p class="area-foot">
+          <span class="small">{t.area.note}</span>
+          <a class="link" href={hotel.directions} rel="noopener">{t.area.directions}</a>
+        </p>
+      </section>
+
+      <section class="faq wrap">
+        <header data-reveal>
+          <p class="eyebrow">{t.faq.eyebrow}</p>
+          <h2>{t.faq.title}</h2>
+        </header>
+        <div class="faq-list">
+          {t.faq.items.map(([question, answer]) => (
+            <details>
+              <summary>{question}</summary>
+              <p>{answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    </main>
+
+    <footer class="contact" id="contact">
+      <div class="meander" aria-hidden="true"></div>
+      <div class="wrap contact-grid">
+        <div>
+          <p class="eyebrow">{t.contact.eyebrow}</p>
+          <h2>{t.contact.title}</h2>
+          <p>{t.contact.body}</p>
+          <a class="btn btn-light" href={hotel.whatsapp} rel="noopener">{t.contact.whatsapp}</a>
+        </div>
+        <dl>
+          <div><dt>{t.contact.mobile}</dt><dd><a href={`tel:${hotel.phoneMobile}`}>{hotel.phoneMobileLabel}</a></dd></div>
+          <div><dt>{t.contact.desk}</dt><dd><a href={`tel:${hotel.phoneDesk}`}>{hotel.phoneDeskLabel}</a></dd></div>
+          <div><dt>{t.contact.email}</dt><dd><a href={`mailto:${hotel.email}`}>{hotel.email}</a></dd></div>
+          <div><dt>{t.contact.address}</dt><dd><a href={hotel.directions} rel="noopener">{hotel.street}, {hotel.postal} {hotel.city}</a></dd></div>
+        </dl>
+      </div>
+      <div class="wrap legal">
+        <p>{t.contact.languages}</p>
+        <ul>
+          <li><a href={hotel.facebook} rel="noopener">Facebook</a></li>
+          <li><a href={hotel.instagram} rel="noopener">Instagram</a></li>
+          {t.footer.policies.map(([label, href]) => <li><a href={href} rel="noopener">{label}</a></li>)}
+        </ul>
+        <p>© {new Date().getFullYear()} {hotel.company}, CUI {hotel.cui}. {t.footer.rights} {t.footer.concept}</p>
+      </div>
+    </footer>
+
+    <nav class="dock" aria-label={t.book}>
+      <a class="btn btn-ghost" href={`tel:${hotel.phoneMobile}`}>{t.call}</a>
+      <a class="btn" href="#rezerva">{t.book}</a>
+    </nav>
+
+    <script>
+      const iso = (date: Date) => {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+      };
+      const addDays = (date: Date, days: number) => {
+        const next = new Date(date);
+        next.setDate(next.getDate() + days);
+        return next;
+      };
+      const today = new Date();
+
+      // Booking form: sensible defaults, departure always after arrival.
+      const form = document.querySelector<HTMLFormElement>('[data-book]');
+      if (form) {
+        const checkin = form.elements.namedItem('checkin') as HTMLInputElement;
+        const checkout = form.elements.namedItem('checkout') as HTMLInputElement;
+        checkin.min = iso(today);
+        checkin.value = iso(addDays(today, 1));
+        checkout.min = iso(addDays(today, 2));
+        checkout.value = iso(addDays(today, 2));
+        checkin.addEventListener('change', () => {
+          if (!checkin.value) return;
+          const earliest = iso(addDays(new Date(`${checkin.value}T12:00:00`), 1));
+          checkout.min = earliest;
+          if (!checkout.value || checkout.value <= checkin.value) checkout.value = earliest;
+        });
+      }
+
+      // Rates table: mark the period that applies today.
+      const todayIso = iso(today);
+      document.querySelectorAll<HTMLTableRowElement>('tr[data-from]').forEach((row) => {
+        if (todayIso >= row.dataset.from! && todayIso <= row.dataset.to!) {
+          row.classList.add('is-now');
+          row.querySelector<HTMLElement>('.now')!.hidden = false;
+        }
+      });
+
+      // Mobile menu closes after choosing a section.
+      const menu = document.querySelector<HTMLDetailsElement>('.menu');
+      menu?.querySelectorAll('a').forEach((link) =>
+        link.addEventListener('click', () => menu.removeAttribute('open')),
+      );
+
+      // Lift indicator: lights the level currently on screen.
+      const lift = document.querySelector<HTMLElement>('[data-lift]');
+      const levels = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+      if (lift && levels.length) {
+        const area = document.getElementById('zona');
+        const update = () => {
+          const line = window.innerHeight * 0.45;
+          let current = levels[0];
+          for (const level of levels) {
+            if (level.getBoundingClientRect().top <= line) current = level;
+          }
+          lift.querySelectorAll('a').forEach((link) => {
+            const active = link.dataset.level === current.dataset.section;
+            link.classList.toggle('is-active', active);
+            if (active) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+          });
+          lift.classList.toggle('is-done', !!area && area.getBoundingClientRect().top < line);
+        };
+        let queued = false;
+        const onScroll = () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(() => {
+            queued = false;
+            update();
+          });
+        };
+        addEventListener('scroll', onScroll, { passive: true });
+        addEventListener('resize', onScroll, { passive: true });
+        update();
+      }
+
+      // Gentle reveal; everything stays visible without JS or with reduced motion.
+      const reveals = document.querySelectorAll('[data-reveal]');
+      if (matchMedia('(prefers-reduced-motion: no-preference)').matches && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px' },
+        );
+        reveals.forEach((element) => {
+          element.classList.add('pre');
+          observer.observe(element);
+        });
+      }
+    </script>
+  </body>
+</html>
