@@ -15,13 +15,14 @@ Concept de redesign pentru hotelanaconstanta.ro: site static RO/EN, cu rezervăr
 | **Site actual** | https://hotelanaconstanta.ro (WordPress) |
 | **Șablon 1** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-1/ |
 | **Șablon 2** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-2/ |
+| **Șablon 3** | https://vladimirtudor40-glitch.github.io/hotel-ana/template-3/ |
 | **GitHub** | https://github.com/vladimirtudor40-glitch/hotel-ana |
 | **Creat** | 2026-11-06 |
 
 ## Comenzi
 
 ```bash
-cd template-1   # sau template-2
+cd template-1   # sau template-2, template-3
 npm install
 npm run dev
 npm run build
@@ -94,3 +95,24 @@ Calculatorul adună tarifele publicate pe 2026 pentru fiecare noapte. Pentru sej
 | Greutate pagină | ≤ 250 KB | 194 KB |
 | JavaScript | ≤ 30 KB | 1.8 KB gzip (4.2 KB) |
 | axe (WCAG 2.2 AA) | 0 probleme | 0, la 320, 390, 820 și 1440 px |
+
+## Șablon 3
+
+Site cinematic făcut cu skill-ul epic-design: o ședere de la check-in la check-out, cu un ceas în meniu. Scenele folosesc GSAP + ScrollTrigger și `position: sticky`. Fără JavaScript sau cu „reduced motion”, pagina devine statică.
+
+Scene: zbor prin ușa de la intrare până la mozaic, coridor de camere pe orizontală, terasă deschisă ca un ecran de cinema, apartament cu parallax, perdele care se dau la o parte, marquee cu zona, rezervare.
+
+Ceasul arată doar orele reale (15:00 și 11:30). Restul sunt momente ale zilei, ca să nu sugereze un program de mic dejun care nu e confirmat. Poziția ușii e în `DOOR`, în `template-3/src/scripts/scenes.ts`, și trebuie schimbată dacă se înlocuiește fotografia fațadei.
+
+| Măsură | Țintă | Rezultat |
+|---|---|---|
+| Performanță | ≥ 95 | 98 |
+| Accesibilitate | ≥ 95 | 100 |
+| Best practices | ≥ 95 | 100 |
+| LCP | ≤ 1,2 s | 2,4 s, peste țintă |
+| CLS | ≤ 0,05 | 0,03 |
+| Greutate pagină | ≤ 250 KB | 246 KB la încărcare; pozele restului paginii vin la derulare |
+| JavaScript | ≤ 30 KB | 45 KB gzip, peste țintă din cauza GSAP |
+| axe (WCAG 2.2 AA) | 0 probleme | 0, la 320, 390, 820 și 1440 px și cu „reduced motion” |
+
+`validate-layers.js` raportează trei erori false: `alt` gol pe imaginea decorativă (corect), link-ul de skip (există, cu clasa `skip`) și GSAP din CDN (aici e inclus în bundle).
